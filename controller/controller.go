@@ -12,7 +12,10 @@ import (
 	"github.com/scch94/API.git/validation"
 )
 
+var requestToGateway structs.RequestPayload
+
 func SendMessageService(c *gin.Context) {
+
 	fmt.Println("starting to get the xml")
 	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
@@ -30,14 +33,15 @@ func SendMessageService(c *gin.Context) {
 	petition := structs.NewPetition(envelope.Body.Send.Mobile, envelope.Body.Send.Message, envelope.Body.Send.UseOriginName)
 	fmt.Println(petition.ToString())
 	//vamos a validar la solicitud del envio de mensajes
-	var TLV string
-	TLV, err = validation.Validacion(*petition)
+	err = validation.Validacion(*petition, &requestToGateway)
 	if err != nil {
 		fmt.Println("error en el momento de validar los datos de la peticion validation.Validacion()")
 		c.String(http.StatusBadRequest, err.Error())
+		return
 	}
-	fmt.Println("this is the TLV", TLV)
-	//aqui vamos al gateway de carlos para enviar el mensaje
+	requestToGateway.DestinationNumber = petition.Mobile()
+	requestToGateway.OriginNumber = "0911234567"
+	//aqui vamos al backend de envio de mensajes
 
-	c.String(http.StatusOK, "XML parsed successfully")
+	c.JSON(http.StatusOK, requestToGateway)
 }
