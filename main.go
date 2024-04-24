@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/scch94/API.git/constants"
@@ -9,14 +10,23 @@ import (
 )
 
 func main() {
+	//para evitar logeo de gin
+	gin.SetMode(gin.ReleaseMode)
+	//creas el servidor
 	router := gin.Default()
-
-	//configuramos las rutas
+	fmt.Println("starting micropagos gateway")
+	//configuramos las rutas del servidor
 	routes.Routes(router)
-	err := router.Run(constants.PORT)
+	//configuracion del servidor rutas y puerto
+	serverConfig := &http.Server{
+		Addr:    constants.PORT,
+		Handler: router,
+	}
+	//arrancamos el servidor
+	err := serverConfig.ListenAndServe()
+	fmt.Println("estamos escuchando en el puerto", constants.PORT)
 	if err != nil {
 		fmt.Println("cant connect to the server: ", err)
 		return
 	}
-	fmt.Println("server is running on port ", constants.PORT)
 }
